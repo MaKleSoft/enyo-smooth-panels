@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Chuisy</title>
+        <link rel="shortcut icon" href="assets/favicon.ico"/>
+        <!-- -->
+        <meta http-equiv="Content-Type" content="text/html; charset=utf8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+        <script src="../../../enyo/enyo.js"></script>
+        <script src="../package.js" type="text/javascript"></script>
+    </head>
+    <body class="enyo-unselectable">
+        <script>
+            enyo.kind({
+                name: "SmoothPanelsSimple",
+                next: function() {
+                    this.$.panels.select(this.$.second);
+                },
+                previous: function() {
+                    this.$.panels.select(this.$.first, SmoothPanels.SLIDE_IN_FROM_LEFT, SmoothPanels.SLIDE_OUT_TO_RIGHT);
+                },
+                animationStart: function() {
+                    this.log("***** animation start *****", arguments);
+                },
+                animationEnd: function() {
+                    this.log("***** animation end *****", arguments);
+                },
+                components: [
+                    {kind: "SmoothPanels", name: "panels", classes: "enyo-fill", components: [
+                        {name: "first", style: "background-color: blue", ontap: "next"},
+                        {name: "second", style: "background-color: red", ontap: "previous"}
+                    ]}
+                ]
+            });
+            new SmoothPanelsSimple().renderInto(document.body);
+        </script>
+    </body>
+</html>
