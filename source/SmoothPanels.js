@@ -55,6 +55,7 @@ enyo.kind({
         // Unfortunately we have to add those listeners manually since Enyo does not support
         // handling these by default
         var eNames = SmoothPanels.animationEventNames[this.getVendorPrefix().lowercase];
+        console.log(eNames);
         this.hasNode().addEventListener(eNames.start, this.animationStartHandler, false);
         this.hasNode().addEventListener(eNames.end, this.animationEndHandler, false);
     },
@@ -107,7 +108,8 @@ enyo.kind({
      * @param  {Object} event animationStart event
      */
     animationStart: function(event) {
-        if (this.currentPanel && event.target == this.currentPanel.hasNode() && event.animationName == this.currOutAnim) {
+        console.log("**** animation start ****", arguments);
+        if (this.oldPanel && event.target == this.oldPanel.hasNode() && event.animationName == this.currOutAnim) {
             this.outAnimationStart();
         } else if (this.newPanel && event.target == this.newPanel.hasNode() && event.animationName == this.currInAnim) {
             this.inAnimationStart();
@@ -122,7 +124,8 @@ enyo.kind({
      * @param  {Object} event animationEnd event
      */
     animationEnd: function(event) {
-        if (this.currentPanel && event.target == this.currentPanel.hasNode() && event.animationName == this.currOutAnim) {
+        console.log("**** animation end ****", arguments);
+        if (this.oldPanel && event.target == this.oldPanel.hasNode() && event.animationName == this.currOutAnim) {
             this.outAnimationEnd();
         } else if (this.newPanel && event.target == this.newPanel.hasNode() && event.animationName == this.currInAnim) {
             this.inAnimationEnd();
@@ -149,7 +152,7 @@ enyo.kind({
      * Starts the out animation
      */
     startOutAnimation: function() {
-        this.applyAnimation(this.currentPanel, this.currOutAnim, this.duration, this.easing);
+        this.applyAnimation(this.oldPanel, this.currOutAnim, this.duration, this.easing);
     },
     /**
      * @private
@@ -157,7 +160,7 @@ enyo.kind({
      * Called after the in animation has started. Fires the corresponding SmoothPanels event.
      */
     inAnimationStart: function() {
-        this.doInAnimationStart({oldPanel: this.currentPanel, newPanel: this.newPanel});
+        this.doInAnimationStart({oldPanel: this.oldPanel, newPanel: this.newPanel});
     },
     /**
      * @private
@@ -166,7 +169,7 @@ enyo.kind({
      * and, if _async_ is set to true, starts the in animation.
      */
     outAnimationStart: function() {
-        this.doOutAnimationStart({oldPanel: this.currentPanel, newPanel: this.newPanel});
+        this.doOutAnimationStart({oldPanel: this.oldPanel, newPanel: this.newPanel});
         this.animating = true;
         if (this.async) {
             this.startInAnimation();
@@ -179,9 +182,8 @@ enyo.kind({
      * and removes the animation css property from the new panel.
      */
     inAnimationEnd: function() {
-        this.doInAnimationEnd({oldPanel: this.currentPanel, newPanel: this.newPanel});
+        this.doInAnimationEnd({oldPanel: this.oldPanel, newPanel: this.newPanel});
         this.applyAnimation(this.newPanel, "none");
-        this.currentPanel = this.newPanel;
     },
     /**
      * @private
@@ -190,9 +192,9 @@ enyo.kind({
      * hides the old panel and removes the animation css property.
      */
     outAnimationEnd: function() {
-        this.doOutAnimationEnd({oldPanel: this.currentPanel, newPanel: this.newPanel});
-        this.currentPanel.hide();
-        this.applyAnimation(this.currentPanel, "none");
+        this.doOutAnimationEnd({oldPanel: this.oldPanel, newPanel: this.newPanel});
+        this.oldPanel.hide();
+        this.applyAnimation(this.oldPanel, "none");
         this.animating = false;
     },
     /**
@@ -207,7 +209,7 @@ enyo.kind({
             this.warn("The panel you selected is null or undefined!");
             return;
         }
-        if (panel == this.newPanel || panel == this.currentPanel) {
+        if (panel == this.currentPanel) {
             // Panel already selected
             return;
         }
@@ -218,7 +220,8 @@ enyo.kind({
             this.inAnimationEnd();
             this.outAnimationEnd();
         }
-        this.newPanel = panel;
+        this.oldPanel = this.currentPanel;
+        this.newPanel = this.currentPanel = panel;
         this.startOutAnimation();
         if (this.currOutAnim == SmoothPanels.NONE) {
             // No out animation. This means there won't be any animationStart or animationEnd events
