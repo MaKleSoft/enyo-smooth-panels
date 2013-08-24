@@ -19,12 +19,6 @@
                 previous: function() {
                     this.$.panels.select(this.$.first, SmoothPanels.SLIDE_IN_FROM_LEFT, SmoothPanels.SLIDE_OUT_TO_RIGHT);
                 },
-                animationStart: function() {
-                    this.log("***** animation start *****", arguments);
-                },
-                animationEnd: function() {
-                    this.log("***** animation end *****", arguments);
-                },
                 components: [
                     {kind: "SmoothPanels", name: "panels", classes: "enyo-fill", components: [
                         {name: "first", style: "background-color: blue", ontap: "next"},

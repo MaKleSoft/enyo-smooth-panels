@@ -31,8 +31,12 @@ enyo.kind({
     },
     create: function() {
         this.inherited(arguments);
-        this.currentPanel = this.getClientControls()[0];
-        this.currentPanel.applyStyle("display", "block");
+        var currentPanel = this.currentPanel = this.getClientControls()[0];
+        this.getClientControls().forEach(function(panel) {
+            if (panel != currentPanel) {
+                panel.hide();
+            }
+        });
         this.animationStartHandler = enyo.bind(this, this.animationStart);
         this.animationEndHandler = enyo.bind(this, this.animationEnd);
     },
@@ -57,7 +61,7 @@ enyo.kind({
     },
     startInAnimation: function() {
         this.newPanel.applyStyle("opacity", 0);
-        this.newPanel.applyStyle("display", "block");
+        this.newPanel.show();
         enyo.asyncMethod(this, function() {
             this.newPanel.applyStyle("-webkit-animation", this.currInAnim + " " + this.duration + "ms");
             this.newPanel.applyStyle("opacity", 1);
@@ -79,12 +83,12 @@ enyo.kind({
     inAnimationEnd: function() {
         this.doInAnimationEnd({oldPanel: this.currentPanel, newPanel: this.newPanel});
         this.newPanel.applyStyle("-webkit-animation", "none");
+        this.currentPanel = this.newPanel;
     },
     outAnimationEnd: function() {
         this.doOutAnimationEnd({oldPanel: this.currentPanel, newPanel: this.newPanel});
-        this.currentPanel.applyStyle("display", "none");
+        this.currentPanel.hide();
         this.currentPanel.applyStyle("-webkit-animation", "none");
-        this.currentPanel = this.newPanel;
         this.animating = false;
     },
     select: function(panel, inAnim, outAnim) {
@@ -93,6 +97,7 @@ enyo.kind({
             return;
         }
         if (panel == this.newPanel || panel == this.currentPanel) {
+            // Panel already selected
             return;
         }
         this.currInAnim = inAnim || this.inAnim;
@@ -116,8 +121,8 @@ enyo.kind({
         if (this.currentPanel == panel) {
             return;
         }
-        panel.applyStyle("display", "block");
-        this.currentPanel.applyStyle("display", "none");
+        panel.show();
+        this.currentPanel.hide();
         this.currentPanel = panel;
     },
     selectByIndex: function(index, inAnim, outAnim) {
