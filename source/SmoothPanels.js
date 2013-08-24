@@ -13,7 +13,13 @@ enyo.kind({
         SLIDE_OUT_TO_TOP: "slideOutToTop",
         FADE_OUT: "fadeOut",
         FADE_IN: "fadeIn",
-        NONE: "none"
+        NONE: "none",
+        animationEventNames: {
+            webkit: {start: "webkitAnimationStart", end: "webkitAnimationEnd"},
+            moz: {start: "animationstart", end: "animationend"},
+            ms: {start: "MSAnimationStart", end: "MSAnimationEnd"},
+            o: {start: "oanimationstart", end: "oanimationend"}
+        }
     },
     events: {
         onInAnimationStart: "", // Fired after the in animation has started
@@ -48,8 +54,49 @@ enyo.kind({
         this.inherited(arguments);
         // Unfortunately we have to add those listeners manually since Enyo does not support
         // handling these by default
-        this.hasNode().addEventListener("webkitAnimationStart", this.animationStartHandler, false);
-        this.hasNode().addEventListener("webkitAnimationEnd", this.animationEndHandler, false);
+        var eNames = SmoothPanels.animationEventNames[this.getVendorPrefix().lowercase];
+        this.hasNode().addEventListener(eNames.start, this.animationStartHandler, false);
+        this.hasNode().addEventListener(eNames.end, this.animationEndHandler, false);
+    },
+    /**
+     * @private
+     *
+     *  Detects the vendor prefix to be used in the current browser
+     * 
+     * @return {Object} object containing the simple lowercase vendor prefix as well as the css prefix
+     * @example
+     * 
+     *     {
+     *         lowercase: "webkit",
+     *         css: "-webkit-"
+     *     }
+     */
+    getVendorPrefix: function() {
+        if (!this.vPrefix) {
+            var styles = window.getComputedStyle(document.documentElement, '');
+            var pre = (Array.prototype.slice.call(styles).join('').match(/-(moz|webkit|ms)-/) || (styles.OLink === '' && ['', 'o']))[1];
+            this.vPrefix = {
+                lowercase: pre,
+                css: '-' + pre + '-'
+            };
+        }
+        return this.vPrefix;
+    },
+    /**
+     * @private
+     * 
+     * Applies a CSS animation to a control
+     * 
+     * @param  {Object} control  Then enyo.Control to apply the animation to
+     * @param  {[type]} anName   The name of the CSS animation to use
+     * @param  {[type]} duration The duration to use for the animation
+     * @param  {[type]} easing   The timing function to use for the animation
+     */
+    applyAnimation: function(control, anName, duration, easing) {
+        control.applyStyle(
+            this.getVendorPrefix().css + "animation",
+            anName == "none" ? anName : anName + " " + duration + "ms " + easing
+        );
     },
     /**
      * @private
@@ -92,7 +139,7 @@ enyo.kind({
         this.newPanel.show();
         // Need to start the animation asynchronously after showing because otherwise it is just being skipped in some browsers
         enyo.asyncMethod(this, function() {
-            this.newPanel.applyStyle("-webkit-animation", this.currInAnim + " " + this.duration + "ms " + this.easing);
+            this.applyAnimation(this.newPanel, this.currInAnim, this.duration, this.easing);
             this.newPanel.applyStyle("opacity", 1);
         });
     },
@@ -102,7 +149,7 @@ enyo.kind({
      * Starts the out animation
      */
     startOutAnimation: function() {
-        this.currentPanel.applyStyle("-webkit-animation", this.currOutAnim + " " + this.duration + "ms " + this.easing);
+        this.applyAnimation(this.currentPanel, this.currOutAnim, this.duration, this.easing);
     },
     /**
      * @private
@@ -133,7 +180,7 @@ enyo.kind({
      */
     inAnimationEnd: function() {
         this.doInAnimationEnd({oldPanel: this.currentPanel, newPanel: this.newPanel});
-        this.newPanel.applyStyle("-webkit-animation", "none");
+        this.applyAnimation(this.newPanel, "none");
         this.currentPanel = this.newPanel;
     },
     /**
@@ -145,7 +192,7 @@ enyo.kind({
     outAnimationEnd: function() {
         this.doOutAnimationEnd({oldPanel: this.currentPanel, newPanel: this.newPanel});
         this.currentPanel.hide();
-        this.currentPanel.applyStyle("-webkit-animation", "none");
+        this.applyAnimation(this.currentPanel, "none");
         this.animating = false;
     },
     /**
@@ -228,8 +275,9 @@ enyo.kind({
     },
     destroy: function() {
         // Since we added those handlers manually, we have to remove them manually, too.
-        this.hasNode().removeEventListener("webkitAnimationStart", this.animationStartHandler, false);
-        this.hasNode().removeEventListener("webkitAnimationEnd", this.animationEndHandler, false);
+        var eNames = SmoothPanels.animationEventNames[this.getVendorPrefix().lowercase];
+        this.hasNode().removeEventListener(eNames.start, this.animationStartHandler, false);
+        this.hasNode().removeEventListener(eNames.end, this.animationEndHandler, false);
         this.inherited(arguments);
     }
 });
