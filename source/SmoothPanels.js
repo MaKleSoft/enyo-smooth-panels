@@ -216,7 +216,7 @@ enyo.kind({
         this.currInAnim = inAnim || this.inAnim;
         this.currOutAnim = outAnim || this.outAnim;
         if (this.animating) {
-            // There is already an animation going on. Wrap it up prematurely
+            // There is already a transition going on. Wrap it up prematurely
             this.inAnimationEnd();
             this.outAnimationEnd();
         }

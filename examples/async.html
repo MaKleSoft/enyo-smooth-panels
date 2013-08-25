@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Chuisy</title>
+        <title>Asynchronous SmoothPanels exmaple</title>
         <link rel="shortcut icon" href="assets/favicon.ico"/>
         <!-- -->
         <meta http-equiv="Content-Type" content="text/html; charset=utf8"/>
@@ -34,7 +34,6 @@
                 },
                 checkbox: function() {
                     this.$.panels.setAsync(this.$.checkbox.getChecked());
-                    console.log(this.$.checkbox.getChecked());
                 },
                 components: [
                     {style: "position: absolute; z-index: 1;", components: [
