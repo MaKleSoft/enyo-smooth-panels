@@ -55,9 +55,10 @@ enyo.kind({
         // Unfortunately we have to add those listeners manually since Enyo does not support
         // handling these by default
         var eNames = SmoothPanels.animationEventNames[this.getVendorPrefix().lowercase];
-        console.log(eNames);
-        this.hasNode().addEventListener(eNames.start, this.animationStartHandler, false);
-        this.hasNode().addEventListener(eNames.end, this.animationEndHandler, false);
+        // this.hasNode().addEventListener(eNames.start, this.animationStartHandler, false);
+        // this.hasNode().addEventListener(eNames.end, this.animationEndHandler, false);
+        enyo.dispatcher.listen(this.hasNode(), eNames.start, this.animationStartHandler);
+        enyo.dispatcher.listen(this.hasNode(), eNames.end, this.animationEndHandler);
     },
     /**
      * @private
@@ -108,7 +109,6 @@ enyo.kind({
      * @param  {Object} event animationStart event
      */
     animationStart: function(event) {
-        console.log("**** animation start ****", arguments);
         if (this.oldPanel && event.target == this.oldPanel.hasNode() && event.animationName == this.currOutAnim) {
             this.outAnimationStart();
         } else if (this.newPanel && event.target == this.newPanel.hasNode() && event.animationName == this.currInAnim) {
@@ -124,7 +124,6 @@ enyo.kind({
      * @param  {Object} event animationEnd event
      */
     animationEnd: function(event) {
-        console.log("**** animation end ****", arguments);
         if (this.oldPanel && event.target == this.oldPanel.hasNode() && event.animationName == this.currOutAnim) {
             this.outAnimationEnd();
         } else if (this.newPanel && event.target == this.newPanel.hasNode() && event.animationName == this.currInAnim) {
@@ -279,8 +278,10 @@ enyo.kind({
     destroy: function() {
         // Since we added those handlers manually, we have to remove them manually, too.
         var eNames = SmoothPanels.animationEventNames[this.getVendorPrefix().lowercase];
-        this.hasNode().removeEventListener(eNames.start, this.animationStartHandler, false);
-        this.hasNode().removeEventListener(eNames.end, this.animationEndHandler, false);
+        // this.hasNode().removeEventListener(eNames.start, this.animationStartHandler, false);
+        // this.hasNode().removeEventListener(eNames.end, this.animationEndHandler, false);
+        enyo.dispatcher.stopListening(this.hasNode(), eNames.start, this.animationStartHandler);
+        enyo.dispatcher.stopListening(this.hasNode(), eNames.end, this.animationEndHandler);
         this.inherited(arguments);
     }
 });
