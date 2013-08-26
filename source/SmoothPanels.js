@@ -28,13 +28,10 @@ enyo.kind({
         onOutAnimationEnd: "" // Fired after the out animation has ended
     },
     published: {
-        // If true, the out animation of the old panel will be started as soon as possible
-        // instead of waiting for the new panel to be rendered and painted. The result
-        // is a decoupled in and out animation
-        async: false,
+        async: false, // If true, the in and out animations will be decoupled
         inAnim: "slideInFromRight", // Name of the CSS animation to use of the in animation
         outAnim: "slideOutToLeft", // Name of the CSS animation to use of the out animation
-        duration: 500, // Duration to use for animations
+        duration: 500, // Duration to use for animations in ms
         easing: "ease" // Timing function to use for animations
     },
     create: function() {
