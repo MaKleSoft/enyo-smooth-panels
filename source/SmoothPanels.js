@@ -87,15 +87,21 @@ enyo.kind({
      * Applies a CSS animation to a control
      * 
      * @param  {Object} control  Then enyo.Control to apply the animation to
-     * @param  {[type]} anName   The name of the CSS animation to use
+     * @param  {[type]} animation   The name of the CSS animation to use
      * @param  {[type]} duration The duration to use for the animation
      * @param  {[type]} easing   The timing function to use for the animation
      */
-    applyAnimation: function(control, anName, duration, easing) {
-        control.applyStyle(
-            this.getVendorPrefix().css + "animation",
-            anName == "none" ? anName : anName + " " + duration + "ms " + easing
-        );
+    applyAnimation: function(control, animation, duration, easing, fillStyle) {
+        var styleProp = this.getVendorPrefix().css + "animation",
+            anim = animation == SmoothPanels.NONE ? animation : [
+                animation,
+                duration + "ms",
+                this.animationEasing,
+                "0ms",
+                fillStyle
+            ].join(" ");
+        
+        control.applyStyle(styleProp, anim);
     },
     /**
      * @private
@@ -133,14 +139,8 @@ enyo.kind({
      * Shows the newly selected panel and starts the in animation.
      */
     startInAnimation: function() {
-        // Prevent the new panel from flashing up on the screen before the animation start
-        this.newPanel.applyStyle("opacity", 0);
+        this.applyAnimation(this.newPanel, this.currInAnim, this.duration, this.easing, "backwards");
         this.newPanel.show();
-        // Need to start the animation asynchronously after showing because otherwise it is just being skipped in some browsers
-        enyo.asyncMethod(this, function() {
-            this.applyAnimation(this.newPanel, this.currInAnim, this.duration, this.easing);
-            this.newPanel.applyStyle("opacity", 1);
-        });
     },
     /**
      * @private
@@ -148,7 +148,14 @@ enyo.kind({
      * Starts the out animation
      */
     startOutAnimation: function() {
-        this.applyAnimation(this.oldPanel, this.currOutAnim, this.duration, this.easing);
+        this.applyAnimation(this.oldPanel, this.currOutAnim, this.duration, this.easing, "forwards");
+
+        if (!this.currOutAnim || this.currOutAnim == SmoothPanels.NONE || this.duration === 0) {
+            // No animation. This means there won't be any animationStart or animationEnd events
+            // so we'll have to handle that manually
+            this.outAnimationStart();
+            setTimeout(enyo.bind(this, this.outAnimationEnd), this.duration);
+        }
     },
     /**
      * @private
@@ -157,6 +164,13 @@ enyo.kind({
      */
     inAnimationStart: function() {
         this.doInAnimationStart({oldPanel: this.oldPanel, newPanel: this.newPanel});
+
+        if (!this.currInAnim || this.currInAnim == SmoothPanels.NONE || this.duration === 0) {
+            // No animation. This means there won't be any animationStart or animationEnd events
+            // so we'll have to handle that manually
+            this.inAnimationStart();
+            setTimeout(enyo.bind(this, this.inAnimationEnd), this.duration);
+        }
     },
     /**
      * @private
@@ -179,7 +193,6 @@ enyo.kind({
      */
     inAnimationEnd: function() {
         this.doInAnimationEnd({oldPanel: this.oldPanel, newPanel: this.newPanel});
-        this.applyAnimation(this.newPanel, "none");
     },
     /**
      * @private
@@ -190,7 +203,6 @@ enyo.kind({
     outAnimationEnd: function() {
         this.doOutAnimationEnd({oldPanel: this.oldPanel, newPanel: this.newPanel});
         this.oldPanel.hide();
-        this.applyAnimation(this.oldPanel, "none");
         this.animating = false;
     },
     /**
@@ -219,14 +231,7 @@ enyo.kind({
         this.oldPanel = this.currentPanel;
         this.newPanel = this.currentPanel = panel;
         this.startOutAnimation();
-        if (this.currOutAnim == SmoothPanels.NONE) {
-            // No out animation. This means there won't be any animationStart or animationEnd events
-            // so we'll have to handle that manually
-            this.outAnimationStart();
-            setTimeout(enyo.bind(this, function() {
-                this.outAnimationEnd();
-            }), this.duration + 500); // Add an extra 500 ms just to be sure
-        }
+
         if (!this.async) {
             // The _async_ property is set to false so we don't have to wait for the out animation to start
             this.startInAnimation();
