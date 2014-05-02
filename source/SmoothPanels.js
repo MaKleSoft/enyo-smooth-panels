@@ -141,6 +141,7 @@ enyo.kind({
     startInAnimation: function() {
         this.applyAnimation(this.newPanel, this.currInAnim, this.duration, this.easing, "backwards");
         this.newPanel.show();
+        this.newPanel.reflow();
     },
     /**
      * @private
