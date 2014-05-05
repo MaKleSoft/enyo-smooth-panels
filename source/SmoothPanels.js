@@ -32,12 +32,13 @@ enyo.kind({
         inAnim: "slideInFromRight", // Name of the CSS animation to use of the in animation
         outAnim: "slideOutToLeft", // Name of the CSS animation to use of the out animation
         duration: 500, // Duration to use for animations in ms
-        easing: "ease" // Timing function to use for animations
+        easing: "ease", // Timing function to use for animations
+        selected: null
     },
     create: function() {
         this.inherited(arguments);
         // Select first panel by default
-        var currentPanel = this.currentPanel = this.getClientControls()[0];
+        var currentPanel = this.selected = this.getClientControls()[0];
         // Hide all other panels
         this.getClientControls().forEach(function(panel) {
             if (panel != currentPanel) {
@@ -149,9 +150,11 @@ enyo.kind({
      * Starts the out animation
      */
     startOutAnimation: function() {
-        this.applyAnimation(this.oldPanel, this.currOutAnim, this.duration, this.easing, "forwards");
+        if (this.oldPanel) {
+            this.applyAnimation(this.oldPanel, this.currOutAnim, this.duration, this.easing, "forwards");
+        }
 
-        if (!this.currOutAnim || this.currOutAnim == SmoothPanels.NONE || this.duration === 0) {
+        if (!this.oldPanel || !this.currOutAnim || this.currOutAnim == SmoothPanels.NONE || this.duration === 0) {
             // No animation. This means there won't be any animationStart or animationEnd events
             // so we'll have to handle that manually
             this.outAnimationStart();
@@ -203,7 +206,9 @@ enyo.kind({
      */
     outAnimationEnd: function() {
         this.doOutAnimationEnd({oldPanel: this.oldPanel, newPanel: this.newPanel});
-        this.oldPanel.hide();
+        if (this.oldPanel) {
+            this.oldPanel.hide();
+        }
         this.animating = false;
     },
     /**
@@ -218,7 +223,7 @@ enyo.kind({
             this.warn("The panel you selected is null or undefined!");
             return;
         }
-        if (panel == this.currentPanel) {
+        if (panel == this.selected) {
             // Panel already selected
             return;
         }
@@ -229,14 +234,17 @@ enyo.kind({
             this.inAnimationEnd();
             this.outAnimationEnd();
         }
-        this.oldPanel = this.currentPanel;
-        this.newPanel = this.currentPanel = panel;
+        this.oldPanel = this.selected;
+        this.newPanel = panel;
+
         this.startOutAnimation();
 
         if (!this.async) {
             // The _async_ property is set to false so we don't have to wait for the out animation to start
             this.startInAnimation();
         }
+        
+        this.set("selected", panel);
     },
     /**
      * Selects a panel directly without any animation.
@@ -244,13 +252,15 @@ enyo.kind({
      * @param  {Object} panel The panel to select
      */
     selectDirect: function(panel) {
-        if (this.currentPanel == panel) {
+        if (this.selected == panel) {
             // Panel is already selected
             return;
         }
         panel.show();
-        this.currentPanel.hide();
-        this.currentPanel = panel;
+        if (this.selected) {
+            this.selected.hide();
+        }
+        this.set("selected", panel);
     },
     /**
      * Selects a panel by its index in the client controls.
@@ -263,20 +273,12 @@ enyo.kind({
         this.select(this.getClientControls()[index], inAnim, outAnim);
     },
     /**
-     * Returns the currently selected panel.
-     * 
-     * @return {Object} The currently selected panel
-     */
-    getSelectedPanel: function() {
-        return this.currentPanel;
-    },
-    /**
      * Returns the index of the currently selected panel.
      * 
      * @return {Number} The index of the currently selected panel
      */
     getSelectedPanelIndex: function() {
-        return this.getClientControls().indexOf(this.currentPanel);
+        return this.getClientControls().indexOf(this.selected);
     },
     destroy: function() {
         // Since we added those handlers manually, we have to remove them manually, too.
