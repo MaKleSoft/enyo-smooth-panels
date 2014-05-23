@@ -199,6 +199,7 @@ enyo.kind({
      */
     inAnimationEnd: function() {
         this.doInAnimationEnd({oldPanel: this.oldPanel, newPanel: this.newPanel});
+        this.applyAnimation(this.newPanel, SmoothPanels.NONE);
     },
     /**
      * @private
