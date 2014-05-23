@@ -211,6 +211,7 @@ enyo.kind({
         this.doOutAnimationEnd({oldPanel: this.oldPanel, newPanel: this.newPanel});
         if (this.oldPanel) {
             this.oldPanel.hide();
+            this.applyAnimation(this.oldPanel, SmoothPanels.NONE);
         }
         this.animating = false;
     },
@@ -260,6 +261,7 @@ enyo.kind({
             return;
         }
         panel.show();
+        panel.reflow();
         if (this.selected) {
             this.selected.hide();
         }
