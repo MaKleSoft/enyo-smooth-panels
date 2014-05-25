@@ -261,6 +261,7 @@ enyo.kind({
             return;
         }
         panel.show();
+        panel.sendShowingChangedEvent();
         panel.reflow();
         if (this.selected) {
             this.selected.hide();
